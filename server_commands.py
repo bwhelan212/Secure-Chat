@@ -4,6 +4,9 @@ import pwinput
 import random
 import sys
 
+online_usernames = []
+id_clients = dict()
+
 def accout_option(client_command, connection_socket):
 
     while (True):
@@ -110,7 +113,8 @@ def login(connection_socket):
                     f.close()
                     user_found = True
                     #connection_socket.send(("Welcome " + username + "!").encode())
-                    place_online(username)
+                    place_online(username,connection_socket)
+                    online_usernames.append(username)
                     return
         f.close()
         if(not user_found):
@@ -120,7 +124,7 @@ def login(connection_socket):
         #connection_socket.send(("meow").encode())
         
 
-def place_online(username):
+def place_online(username, connection_socket):
 # Open the file
 
     f = open("db.txt", "r")
@@ -129,8 +133,11 @@ def place_online(username):
         if username == stored_username:
             l = open("online.txt", "a")
             l.write(f"{username} {user_id}\n")
+            id_clients[user_id] = connection_socket
+            f.close()
             print("user added to online")
             break
+    f.close()
 
 def show_online(connection_socket):
     #shows the client who is online (online.txt)
@@ -140,7 +147,36 @@ def show_online(connection_socket):
     
 def connect_client(connection_socket):
     #still needs to be done, connects client to another client
-    connection_socket.send(("Please enter the user ID of the person you would like to connect to").encode())
-    user_id = connection_socket.recv(1024).decode()
-    print("user would like to connect to ", user_id)
-    connection_socket.send(("wow you are so awesome!!\nThis still needs to be worked on\n\n").encode())
+    group_chat = []
+    while True: 
+        connection_socket.send(("Please enter the user ID of the person you would like to connect to").encode())
+        user_id = connection_socket.recv(1024).decode()
+        print("user would like to connect to ", user_id)
+        for id in id_clients:
+            if id == user_id:
+                invitee_socket = id_clients[id]
+                invitee_socket.send(("Would you like to join the chat with blah? press 1 for yes, 2 for no ").encode())
+                while True:
+                    invite_response = invitee_socket.recv(1024).decode()
+                    if invite_response == 1:
+                        msg = user_id + " accepted your request"
+                        group_chat.append(user_id)
+                        connection_socket.send(msg.encode())
+                        break
+                    elif invite_response == 2:
+                        msg = user_id + " declined your request"
+                        connection_socket.send(msg.encode())
+                        break
+            #still working on this
+            msg2 = "Press 1 to invite another user and 2 to create chat"
+            connection_socket.send(msg2.encode())
+            another_invite = connection_socket.recv(1024).decode()
+            # if another_invite == 1:
+                
+    # connection_socket.send(("wow you are so awesome!!\nThis still needs to be worked on\n\n").encode())
+    
+# def wait_for_invite(connection_socket): 
+#     msg = "Waiting for invites to chat!"
+#     connection_socket.send(msg.encode())
+    # while True:
+        
