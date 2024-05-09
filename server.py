@@ -81,16 +81,19 @@ if __name__ == "__main__":
 
     start_server(port)'''
 
+
 import socket
 import os
 import sys
 from server_commands import accout_option
 from server_commands import command_handler
+import threading
 
+clients = []
+# usernames = []
 def server_handler (client_socket):
     welcome_msg = "----You have successfully connected to Secure Chat!----\n\n"
     client_socket.send(welcome_msg.encode())
-
     while(True):
 
         options_msg = "Press 1 to create an account, 2 to log into an existing account, or 3 to quit: \n"
@@ -116,6 +119,9 @@ def server_handler (client_socket):
 
 
 def start_server(port):
+    #reset online.txt whenever server.py ran
+    f = open("online.txt", "w")
+    f.close()
     #server IP
     server_ip = "127.0.0.1"
     #create a socket
@@ -133,8 +139,12 @@ def start_server(port):
         client_socket, client_info = server_socket.accept()
 
         print ("Client connected from: " + str(client_info))
-
-        server_handler(client_socket)
+        clients.append(client_socket)
+        
+        #server_handler(client_socket)
+        #thread so client can send messages to server
+        thread = threading.Thread(target=server_handler, args=(client_socket,))
+        thread.start()
 
 
 if __name__ == "__main__":

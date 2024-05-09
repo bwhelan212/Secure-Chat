@@ -60,33 +60,28 @@ if __name__ == "__main__":
 import socket
 import os
 import sys
+import threading
+import time
 
-
-
-def start_client(server_name, server_port):
-    #the client's socket
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #attempt to connect to the server
-    client_socket.connect((server_name, server_port))
-
-    welcome_message = client_socket.recv(1024).decode()
-    print(welcome_message)
-
+#used to create thread for client to recieve messages
+def client_receive_msg():
+    welcome_msg = client_socket.recv(1024).decode()
+    print(welcome_msg)
     while(True):
-
-        #get user input
-        user_input = input("Secure-Chat> ")
-
-        #send user_input to the server
-        client_socket.send(user_input.encode())
-
         server_response = client_socket.recv(1024).decode()
         print (server_response)
+        
+#function used to create thread for sending client messages
+def client_sending_msg():
+    while True:
+        # sleep so secure-chat> prompt appears after server sends msg
+        time.sleep(0.3)
+        user_input = input("Secure-Chat> ")
 
-        #client_handler(server_response, client_socket)
-
-
-
+        # #send user_input to the server
+        client_socket.send(user_input.encode())
+        
+        
 if __name__ == "__main__":
     #check if both server_name and server_port are provided
     if len(sys.argv) != 3:
@@ -104,4 +99,16 @@ if __name__ == "__main__":
         print("Invalid port number. Please provide a valid integer.")
         sys.exit(1)
 
-    start_client(server_name, server_port)
+    # start_client(server_name, server_port)
+    
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #attempt to connect to the server
+    client_socket.connect((server_name, server_port))
+
+    receiving_thread = threading.Thread(target=client_receive_msg)
+    receiving_thread.start()
+    
+    sending_thread = threading.Thread(target=client_sending_msg)
+    sending_thread.start()
+    
+   
