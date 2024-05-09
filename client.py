@@ -75,7 +75,7 @@ def client_receive_msg():
 def client_sending_msg():
     while True:
         # sleep so secure-chat> prompt appears after server sends msg
-        time.sleep(0.3)
+        time.sleep(0.5)
         user_input = input("Secure-Chat> ")
 
         # #send user_input to the server
